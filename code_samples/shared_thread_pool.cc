@@ -1,4 +1,4 @@
-#include <thread_pool/current.h>
+#include <thread_pool/shared.h>
 
 #include <chrono>
 #include <iostream>
@@ -15,16 +15,16 @@ void Task() {
 int main() {
     using namespace pool;
 
-    currentThreadPool().submit([]{
+    sharedThreadPool().submit([]{
         std::cout << THREAD_ID() << ") #1" << std::endl;
     });
 
-    currentThreadPool().submit([]{
+    sharedThreadPool().submit([]{
         std::this_thread::sleep_for(20ms);
         std::cout << THREAD_ID() << ") #2" << std::endl;
     });
 
-    currentThreadPool().submit([]{
+    sharedThreadPool().submit([]{
         std::this_thread::sleep_for(50ms);
         std::cout << THREAD_ID() << ") #3" << std::endl;
     });
@@ -34,10 +34,10 @@ int main() {
         std::cout << THREAD_ID() << ") #4" << std::endl;
     };
 
-    currentThreadPool().submit(std::move(task));
-    currentThreadPool().submit(Task);
+    sharedThreadPool().submit(std::move(task));
+    sharedThreadPool().submit(Task);
 
-    currentThreadPool().wait();
+    sharedThreadPool().wait();
 
     return EXIT_SUCCESS;
 }

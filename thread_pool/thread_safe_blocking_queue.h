@@ -7,15 +7,15 @@
 
 namespace pool {
     template <typename T, typename Container = std::deque<T>>
-    class ThreadSafetyBlockingQueue {
+    class ThreadSafeBlockingQueue {
     public:
         using value_type = typename Container::value_type;
         using size_type = typename Container::size_type;
 
     public:
-        ThreadSafetyBlockingQueue() noexcept = default;
+        ThreadSafeBlockingQueue() noexcept = default;
 
-        ThreadSafetyBlockingQueue(const ThreadSafetyBlockingQueue &other) {
+        ThreadSafeBlockingQueue(const ThreadSafeBlockingQueue &other) {
             std::lock_guard guard(other.mutex_);
             queue_ = other.queue_;
         }
@@ -24,6 +24,12 @@ namespace pool {
         void push(const value_type &value) {
             std::lock_guard guard(mutex_);
             queue_.push_back(value);
+            queue_non_empty_.notify_one();
+        }
+
+        void push(value_type &&value) {
+            std::lock_guard guard(mutex_);
+            queue_.push_back(std::move(value));
             queue_non_empty_.notify_one();
         }
 
@@ -41,34 +47,11 @@ namespace pool {
             queue_non_empty_.notify_one();
         }
 
-        void push(value_type &&value) {
-            std::lock_guard guard(mutex_);
-            queue_.push_back(std::move(value));
-            queue_non_empty_.notify_one();
-        }
-
-        std::shared_ptr<value_type> wait_and_pop() {
+        value_type wait_and_pop() {
             std::unique_lock lock(mutex_);
             queue_non_empty_.wait(lock, [this] { return !queue_.empty(); });
 
-            std::shared_ptr value = std::make_shared<value_type>(queue_.front());
-            queue_.pop_front();
-            return value;
-        }
-
-        bool try_pop(value_type &value) {
-            std::lock_guard guard(mutex_);
-            if (queue_.empty())
-                return false;
-            value = queue_.front();
-            queue_.pop_front();
-        }
-
-        std::shared_ptr<value_type> try_pop() {
-            std::lock_guard guard(mutex_);
-            if (queue_.empty())
-                return nullptr;
-            std::shared_ptr value = std::make_shared<value_type>(queue_.front());
+            value_type value = queue_.front();
             queue_.pop_front();
             return value;
         }
