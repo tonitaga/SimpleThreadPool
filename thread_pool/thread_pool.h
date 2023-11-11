@@ -1,5 +1,5 @@
-#ifndef THREADPOOL_THREAD_POOL_H
-#define THREADPOOL_THREAD_POOL_H
+#ifndef SIMPLE_THREAD_POOL_THREAD_POOL_H_
+#define SIMPLE_THREAD_POOL_THREAD_POOL_H_
 
 #include <thread_pool/thread_pool_task.h>
 #include <thread_pool/thread_safety_blocking_queue.h>
@@ -50,6 +50,15 @@ namespace pool {
          */
         void wait();
 
+    private:
+        std::vector<std::thread> workers_;
+        ThreadSafetyBlockingQueue<internal::ThreadPoolTask> tasks_;
+
+    private:
+        void create_workers(std::size_t workers_count);
+        void routine_work();
+        void join_workers();
+
         /**
          * @brief Stops the thread pool without waiting for all tasks to complete.
          *
@@ -59,18 +68,6 @@ namespace pool {
          * all tasks have completed before returning.
          */
         void stop();
-
-        void launch_workers_again();
-
-    private:
-        std::vector<std::thread> workers_;
-        ThreadSafetyBlockingQueue<internal::ThreadPoolTask> tasks_;
-
-    private:
-        void create_workers(std::size_t workers_count);
-        void routine_work();
-        void join_workers();
-        void launch_workers();
     };
 
     ThreadPool::ThreadPool(std::size_t workers_count) {
@@ -91,11 +88,6 @@ namespace pool {
             tasks_.emplace_front(empty_task, internal::kStopTask);
 
         join_workers();
-    }
-
-    void ThreadPool::launch_workers_again() {
-        join_workers();
-        launch_workers();
     }
 
     void ThreadPool::create_workers(std::size_t workers_count) {
@@ -125,14 +117,6 @@ namespace pool {
             if (worker.joinable())
                 worker.join();
     }
-
-    void ThreadPool::launch_workers() {
-        for (auto &worker : workers_) {
-            worker = std::thread([&]{
-                routine_work();
-            });
-        }
-    }
 }
 
-#endif //THREADPOOL_THREAD_POOL_H
+#endif //SIMPLE_THREAD_POOL_THREAD_POOL_H_

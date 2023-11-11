@@ -1,5 +1,5 @@
-#ifndef THREADPOOL_CURRENT_H
-#define THREADPOOL_CURRENT_H
+#ifndef SIMPLE_THREAD_POOL_CURRENT_H_
+#define SIMPLE_THREAD_POOL_CURRENT_H_
 
 #include <thread_pool/thread_pool.h>
 
@@ -10,4 +10,4 @@ namespace pool {
     }
 }
 
-#endif //THREADPOOL_CURRENT_H
+#endif //SIMPLE_THREAD_POOL_CURRENT_H_
