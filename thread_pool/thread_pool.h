@@ -26,7 +26,9 @@ namespace pool {
          */
         explicit ThreadPool(std::size_t workers_count = std::thread::hardware_concurrency());
 
-        ~ThreadPool() noexcept = default;
+        ~ThreadPool() noexcept {
+            stop();
+        };
 
     public:
 

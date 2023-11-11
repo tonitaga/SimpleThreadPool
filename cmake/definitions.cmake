@@ -1,0 +1,1 @@
+add_definitions(-Ddefined_workers_count=6)
