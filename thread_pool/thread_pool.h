@@ -2,8 +2,9 @@
 #define SIMPLE_THREAD_POOL_THREAD_POOL_H_
 
 #include <thread_pool/thread_pool_task.h>
-#include <thread_pool/thread_safety_blocking_queue.h>
+#include <thread_pool/thread_safe_blocking_queue.h>
 
+#include <atomic>
 #include <vector>
 #include <thread>
 
@@ -25,6 +26,9 @@ namespace pool {
          *                      If not provided, it defaults to the number of hardware threads.
          */
         explicit ThreadPool(std::size_t workers_count = std::thread::hardware_concurrency());
+
+        ThreadPool(const ThreadPool &) = delete;
+        ThreadPool &operator=(const ThreadPool &) = delete;
 
         ~ThreadPool() noexcept {
             stop();
@@ -52,7 +56,7 @@ namespace pool {
 
     private:
         std::vector<std::thread> workers_;
-        ThreadSafetyBlockingQueue<internal::ThreadPoolTask> tasks_;
+        ThreadSafeBlockingQueue<internal::ThreadPoolTask> tasks_;
 
     private:
         void create_workers(std::size_t workers_count);
@@ -75,7 +79,7 @@ namespace pool {
     }
 
     void ThreadPool::submit(ThreadPoolTask task) {
-        tasks_.emplace_back(task, internal::kSubmitTask);
+        tasks_.emplace_back(std::move(task), internal::kSubmitTask);
     }
 
     void ThreadPool::wait() {
@@ -104,7 +108,7 @@ namespace pool {
 
     void ThreadPool::routine_work() {
         while (true) {
-            auto [Task, task_type] = *tasks_.wait_and_pop();
+            auto [Task, task_type] = tasks_.wait_and_pop();
             if (task_type == internal::kStopTask)
                 break;
 

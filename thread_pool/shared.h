@@ -4,7 +4,7 @@
 #include <thread_pool/thread_pool.h>
 
 namespace pool {
-    ThreadPool &currentThreadPool() {
+    ThreadPool &sharedThreadPool() {
         static ThreadPool thread_pool(defined_workers_count);
         return thread_pool;
     }

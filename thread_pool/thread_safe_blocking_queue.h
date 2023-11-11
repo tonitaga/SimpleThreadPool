@@ -10,7 +10,6 @@ namespace pool {
     class ThreadSafeBlockingQueue {
     public:
         using value_type = typename Container::value_type;
-        using size_type = typename Container::size_type;
 
     public:
         ThreadSafeBlockingQueue() noexcept = default;
@@ -21,18 +20,6 @@ namespace pool {
         }
 
     public:
-        void push(const value_type &value) {
-            std::lock_guard guard(mutex_);
-            queue_.push_back(value);
-            queue_non_empty_.notify_one();
-        }
-
-        void push(value_type &&value) {
-            std::lock_guard guard(mutex_);
-            queue_.push_back(std::move(value));
-            queue_non_empty_.notify_one();
-        }
-
         template<typename ...Args>
         void emplace_back(Args &&...args) {
             std::lock_guard guard(mutex_);

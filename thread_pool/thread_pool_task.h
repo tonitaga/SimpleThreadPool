@@ -12,7 +12,14 @@ namespace pool {
             kStopTask
         };
 
-        using ThreadPoolTask = std::pair<ThreadPoolTask, ThreadPoolTaskType>;
+        struct ThreadPoolTask {
+        public:
+            pool::ThreadPoolTask task;
+            ThreadPoolTaskType type;
+
+        public:
+            ThreadPoolTask(pool::ThreadPoolTask &&task, ThreadPoolTaskType type) : task(std::move(task)), type(type) {};
+        };
     }
 }
 

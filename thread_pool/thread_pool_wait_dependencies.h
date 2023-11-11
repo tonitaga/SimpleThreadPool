@@ -1,8 +1,8 @@
-//
-// Created by tonitaga on 11/12/23.
-//
-
 #ifndef THREADPOOL_THREAD_POOL_WAIT_DEPENDENCIES_H
 #define THREADPOOL_THREAD_POOL_WAIT_DEPENDENCIES_H
+
+namespace pool {
+
+}
 
 #endif //THREADPOOL_THREAD_POOL_WAIT_DEPENDENCIES_H
