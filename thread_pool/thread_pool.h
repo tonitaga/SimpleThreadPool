@@ -22,12 +22,18 @@ namespace pool {
      */
     class ThreadPool {
     public:
+        enum StopType {
+            kWaitingStop,
+            kAbortingStop
+        };
+
         /**
          * @brief Constructs a ThreadPool object with the specified number of worker threads.
          * @param workers_count The number of worker threads to create in the thread pool.
          *                      If not provided, it defaults to the number of hardware threads.
          */
-        explicit ThreadPool(std::size_t workers_count = std::thread::hardware_concurrency());
+        explicit ThreadPool(std::size_t workers_count = std::thread::hardware_concurrency(),
+                            StopType stop_type = kAbortingStop);
 
         ThreadPool(const ThreadPool &) = delete;
         ThreadPool &operator=(const ThreadPool &) = delete;
@@ -59,7 +65,8 @@ namespace pool {
     private:
         std::vector<std::thread> workers_;
         ThreadSafeBlockingQueue<internal::ThreadPoolTask> tasks_;
-        internal::ThreadPoolWaitGroup waiters_;
+        internal::ThreadPoolWaitGroup wait_group_;
+        StopType stop_type_;
 
     private:
         void create_workers(std::size_t workers_count);
@@ -77,23 +84,28 @@ namespace pool {
         void stop();
     };
 
-    ThreadPool::ThreadPool(std::size_t workers_count) {
+    ThreadPool::ThreadPool(std::size_t workers_count, StopType stop_type) : stop_type_(stop_type) {
         create_workers(workers_count);
     }
 
     void ThreadPool::submit(ThreadPoolTask task) {
-        waiters_.add_waiter();
+        wait_group_.add_waiter();
         tasks_.emplace_back(std::move(task), internal::kSubmitTask);
     }
 
     void ThreadPool::wait() {
-        waiters_.wait_no_waiters();
+        wait_group_.wait_no_waiters();
     }
 
     void ThreadPool::stop() {
         static auto empty_task = []{};
-        for (std::size_t i = 0; i != workers_.size(); ++i)
-            tasks_.emplace_front(empty_task, internal::kStopTask);
+        if (stop_type_ == kWaitingStop) {
+            for (std::size_t i = 0; i != workers_.size(); ++i)
+                tasks_.emplace_back(empty_task, internal::kStopTask);
+        } else {
+            for (std::size_t i = 0; i != workers_.size(); ++i)
+                tasks_.emplace_front(empty_task, internal::kStopTask);
+        }
 
         join_workers();
     }
@@ -116,8 +128,8 @@ namespace pool {
             if (task_type == internal::kStopTask)
                 break;
 
+            wait_group_.remove_waiter();
             Task();
-            waiters_.remove_waiter();
         }
     }
 

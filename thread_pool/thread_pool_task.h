@@ -18,7 +18,7 @@ namespace pool {
             ThreadPoolTaskType type;
 
         public:
-            ThreadPoolTask(pool::ThreadPoolTask &&task, ThreadPoolTaskType type) : task(std::move(task)), type(type) {};
+            ThreadPoolTask(pool::ThreadPoolTask task, ThreadPoolTaskType type) : task(std::move(task)), type(type) {};
         };
     }
 }

@@ -15,8 +15,11 @@ namespace pool::internal {
         void remove_waiter() {
             std::lock_guard guard(mutex_);
             waiters_--;
-            if (waiters_ == 0)
-                no_waiters_.notify_one();
+
+            if (waiters_ != 0)
+                return;
+
+            no_waiters_.notify_one();
         }
 
         void wait_no_waiters() {
