@@ -10,5 +10,5 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_executable(
     ${PROJECT_NAME}
-        code_samples/shared_thread_pool.cc
+        code_samples/new_wait.cc
 )

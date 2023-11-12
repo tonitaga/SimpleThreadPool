@@ -2,11 +2,13 @@
 #define SIMPLE_THREAD_POOL_THREAD_POOL_H_
 
 #include <thread_pool/thread_pool_task.h>
+#include <thread_pool/thread_pool_wait_group.h>
 #include <thread_pool/thread_safe_blocking_queue.h>
 
 #include <atomic>
 #include <vector>
 #include <thread>
+#include <stdexcept>
 
 namespace pool {
     /**
@@ -57,6 +59,7 @@ namespace pool {
     private:
         std::vector<std::thread> workers_;
         ThreadSafeBlockingQueue<internal::ThreadPoolTask> tasks_;
+        internal::ThreadPoolWaitGroup waiters_;
 
     private:
         void create_workers(std::size_t workers_count);
@@ -79,11 +82,12 @@ namespace pool {
     }
 
     void ThreadPool::submit(ThreadPoolTask task) {
+        waiters_.add_waiter();
         tasks_.emplace_back(std::move(task), internal::kSubmitTask);
     }
 
     void ThreadPool::wait() {
-        while (!tasks_.empty()) {}
+        waiters_.wait_no_waiters();
     }
 
     void ThreadPool::stop() {
@@ -113,6 +117,7 @@ namespace pool {
                 break;
 
             Task();
+            waiters_.remove_waiter();
         }
     }
 
