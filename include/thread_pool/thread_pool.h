@@ -1,3 +1,18 @@
+//
+//		Simple thread pool implementation
+//		Supports subscribing for void() tasks,
+//		changing priority of task, and control destructor
+//      implementation, also supports waiting all tasks
+//		before submit for another task
+//
+//		Simple thread pool written on C++17 Standard
+//		Also this project contains Thread Safe Blocking Queue
+//
+//		[Author]  Gubaydullin Nurislam aka tonitaga
+//		[Gmail]   gubaydullin.nurislam@gmail.com
+//      [Telegram] @tonitaga
+//
+
 #ifndef THREADPOOL_INCLUDE_THREAD_POOL_THREAD_POOL_H
 #define THREADPOOL_INCLUDE_THREAD_POOL_THREAD_POOL_H
 
@@ -26,8 +41,8 @@ public:
 		  if (task_type == internal::task_type::internal_stop)
 			break;
 
-		  wait_group_.sub();
 		  task();
+		  wait_group_.sub();
 		}
 	  });
 	}
