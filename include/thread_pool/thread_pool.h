@@ -17,6 +17,7 @@
 #define THREADPOOL_INCLUDE_THREAD_POOL_THREAD_POOL_H
 
 #include <thread>
+#include <vector>
 #include <stdexcept>
 
 #include <thread_pool/thread_pool_task.h>
